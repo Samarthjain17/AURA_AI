@@ -23,7 +23,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import connectDB from './config/connectDB.js';
-import authRoutes from './routes/auth.route.js'; // 👈 Ye line add karo
+import authRoutes from './routes/auth.route.js';
+import userRoutes from './routes/user.route.js';
 
 dotenv.config();
 const app = express();
@@ -38,6 +39,7 @@ app.use(cors({
 // --- ROUTES ---
 // 👈 Ye line add karo. Isse saare auth routes "/api/auth" se shuru honge
 app.use('/api/auth', authRoutes); 
+app.use('/api/user', userRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: "Hello from Your Unique AI Assistant Backend! 🔥" });

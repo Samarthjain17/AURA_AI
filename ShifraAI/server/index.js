@@ -1,23 +1,3 @@
-import express from "express"
-
-import dotenv from "dotenv"
-import connectDB from "./Configs/ConnextDB.js"
-
-dotenv.config()
-
-const app = express()
-
-const PORT = process.env.PORT
-
-app.get("/" , (req,res)=>{
-    res.json("Hello from Server")
-})
-
-app.listen(PORT , ()=>{
-    console.log(`Server Started on Port ${PORT}`)
-    connectDB()
-})
-
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -29,6 +9,7 @@ import userRoutes from './routes/user.route.js';
 dotenv.config();
 const app = express();
 
+// --- MIDDLEWARES ---
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
@@ -37,7 +18,6 @@ app.use(cors({
 }));
 
 // --- ROUTES ---
-// 👈 Ye line add karo. Isse saare auth routes "/api/auth" se shuru honge
 app.use('/api/auth', authRoutes); 
 app.use('/api/user', userRoutes);
 
@@ -45,6 +25,7 @@ app.get('/', (req, res) => {
     res.json({ message: "Hello from Your Unique AI Assistant Backend! 🔥" });
 });
 
+// --- SERVER START ---
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT} 🚀`);

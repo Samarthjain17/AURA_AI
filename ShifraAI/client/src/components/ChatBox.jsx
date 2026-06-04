@@ -2,29 +2,62 @@ import React, { useState } from 'react';
 
 const ChatBox = () => {
   const [prompt, setPrompt] = useState("");
+  // Messages store karne ke liye state (ek dummy welcome message ke sath)
+  const [messages, setMessages] = useState([
+    { role: "ai", text: "Hello! I am AURA. How can I assist you today? ✨" }
+  ]);
 
   const handleSend = (e) => {
     e.preventDefault();
     if (!prompt.trim()) return;
-    console.log("User Prompt:", prompt); 
+
+    // 1. User ka message screen par dikhao
+    const newUserMessage = { role: "user", text: prompt };
+    setMessages((prevMessages) => [...prevMessages, newUserMessage]);
+    
+    // Input box khali karo
     setPrompt(""); 
+
+    // 2. Dummy AI Response (Jab tak hum asli backend nahi lagate)
+    setTimeout(() => {
+      setMessages((prevMessages) => [
+        ...prevMessages, 
+        { role: "ai", text: "I'm processing your request. Real AI connection coming soon! 🚀" }
+      ]);
+    }, 1000);
   };
 
   return (
-    // Glassmorphism Container
     <div className="w-full max-w-4xl mx-auto flex flex-col h-[85vh] bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]">
       
-      {/* Messages Area */}
-      <div className="flex-1 p-6 overflow-y-auto">
-        <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
-           <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30 animate-pulse">
-              <span className="text-2xl">✨</span>
-           </div>
-          <h2 className="text-2xl font-semibold text-white tracking-wide">How can I help you today?</h2>
-        </div>
+      {/* 🟢 Messages Area (Yahan hamari baatcheet dikhegi) */}
+      <div className="flex-1 p-4 sm:p-6 overflow-y-auto flex flex-col gap-6 custom-scrollbar">
+        
+        {messages.length === 0 ? (
+          // Agar koi message nahi hai toh ye dikhao
+          <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
+             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30 animate-pulse">
+                <span className="text-2xl">✨</span>
+             </div>
+            <h2 className="text-2xl font-semibold text-white tracking-wide">How can I help you today?</h2>
+          </div>
+        ) : (
+          // Agar messages hain toh unko map karke dikhao
+          messages.map((msg, index) => (
+            <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[80%] md:max-w-[70%] p-4 rounded-2xl shadow-md ${
+                msg.role === 'user' 
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-br-none' 
+                : 'bg-[#1A2031] border border-gray-700/50 text-gray-200 rounded-bl-none'
+              }`}>
+                <p className="leading-relaxed">{msg.text}</p>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
-      {/* 3D Input Area */}
+      {/* 🔵 3D Input Area */}
       <div className="p-4 sm:p-6 bg-transparent">
         <form onSubmit={handleSend} className="flex gap-3 relative group">
           <input

@@ -1,9 +1,9 @@
 import express from 'express';
-import { generateResponse } from '../controllers/chat.controller.js';
+import { generateResponse, getChatHistory } from '../controllers/chat.controller.js';
 
 const router = express.Router();
 
-// Jab bhi koi /api/chat/generate par POST request karega, AI answer dega
 router.post('/generate', generateResponse);
+router.post('/history', getChatHistory); // 👈 Ye naya history wala route hai
 
 export default router;

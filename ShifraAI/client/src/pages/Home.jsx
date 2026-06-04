@@ -1,28 +1,23 @@
 import React from 'react';
-import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 import ChatBox from '../components/ChatBox';
 
 const Home = ({ user }) => {
   return (
-    // 'h-screen' use kiya hai taaki page screen se bahar na jaye
-    <div className="h-screen bg-[#0B0F19] flex flex-col font-sans overflow-hidden">
+    // Flex row for Sidebar (Left) and Main Content (Right)
+    <div className="flex h-screen bg-[#080B14] font-sans overflow-hidden">
       
-      <Navbar user={user} />
+      {/* Sidebar on the Left */}
+      <Sidebar user={user} />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col items-center pt-8 px-4 pb-6 w-full">
+      {/* Main Content Area on the Right */}
+      <div className="flex-1 flex flex-col relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1a1f35] via-[#080B14] to-[#080B14]">
         
-        {/* Header Text (Thoda chota kiya taaki chatbox ko jagah mile) */}
-        <h1 className="text-3xl md:text-4xl font-bold mb-3 tracking-tight text-white">
-          Welcome to <span className="text-purple-500">AURA AI</span> 🚀
-        </h1>
-        <p className="text-gray-400 text-sm md:text-base max-w-2xl text-center mb-4">
-          Your intelligent assistant is ready. Ask anything, brainstorm ideas, or generate code.
-        </p>
+        {/* Chat Area */}
+        <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
+          <ChatBox />
+        </div>
 
-        {/* 💬 Chat Box Component */}
-        <ChatBox />
-        
       </div>
     </div>
   );

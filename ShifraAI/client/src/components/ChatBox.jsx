@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
-// 🔥 Naye imports syntax highlighter ke liye
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -134,6 +133,21 @@ const ChatBox = ({ user, currentChatId, isTemporary }) => {
     }
   };
 
+  const handleExportChat = () => {
+    if (messages.length === 0) return;
+    let exportText = "--- AURA AI Chat Export ---\n\n";
+    messages.forEach((m) => {
+      exportText += `[${m.role === 'user' ? 'You' : 'AURA'}]: ${m.text}\n\n`;
+    });
+    const blob = new Blob([exportText], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `AURA_Chat_${new Date().toISOString().slice(0, 10)}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const suggestions = [
     { icon: "💻", text: "Write a React component for a Navbar" },
     { icon: "📝", text: "Summarize the concept of Black Holes" },
@@ -142,8 +156,26 @@ const ChatBox = ({ user, currentChatId, isTemporary }) => {
 
   return (
     <div className="w-full flex flex-col h-full bg-transparent overflow-x-hidden relative">
-      <div className="flex-1 overflow-y-auto w-full custom-scrollbar">
+      
+      {/* 🔥 FLOATING EXPORT BUTTON (Ab hamesha dikhega jab tak chat temporary na ho) */}
+      {!isTemporary && (
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-10 z-[60] animate-fade-in-down">
+          <button 
+            onClick={handleExportChat} 
+            className="flex items-center gap-2 text-xs font-semibold text-purple-300 hover:text-white bg-[#1A2031]/80 backdrop-blur-md border border-purple-500/30 hover:bg-purple-600/50 px-4 py-2.5 rounded-full transition-all shadow-[0_4px_15px_rgba(147,51,234,0.3)] hover:scale-105"
+            title="Download Conversation"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            Export Chat
+          </button>
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto w-full custom-scrollbar pt-6">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-8 flex flex-col gap-8">
+          
           {messages.map((msg, index) => (
             <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} group animate-fade-in-up w-full`}>
               {msg.role === 'ai' && (
@@ -162,8 +194,6 @@ const ChatBox = ({ user, currentChatId, isTemporary }) => {
                   </div>
                 ) : (
                   <div className="leading-relaxed whitespace-pre-wrap flex flex-col gap-3 text-sm md:text-base prose prose-invert max-w-none break-words">
-                    
-                    {/* 🔥 Yahan humne ReactMarkdown ko Code Highlighter sikha diya hai */}
                     <ReactMarkdown
                       components={{
                         code({ node, inline, className, children, ...props }) {
@@ -205,7 +235,6 @@ const ChatBox = ({ user, currentChatId, isTemporary }) => {
                     >
                       {msg.text}
                     </ReactMarkdown>
-
                   </div>
                 )}
                 

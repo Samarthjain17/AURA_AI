@@ -3,24 +3,39 @@ import Chat from '../models/chat.model.js';
 
 export const generateResponse = async (req, res) => {
     try {
-        // Ab frontend se email bhi aayega
         const { prompt, userEmail } = req.body; 
         
         if (!prompt || !userEmail) {
             return res.status(400).json({ error: "Prompt and Email are required!" });
         }
 
-        // 1. Gemini AI se answer laao
+        // 1. Database se purani history nikaalo
+        let chat = await Chat.findOne({ userEmail });
+        let historyForGemini = [];
+
+        if (chat) {
+            // Google Gemini ka format thoda alag hota hai (ai ki jagah 'model' aur text ki jagah 'parts')
+            historyForGemini = chat.messages.map(msg => ({
+                role: msg.role === 'ai' ? 'model' : 'user',
+                parts: [{ text: msg.text }]
+            }));
+        }
+
+        // 2. Gemini AI ko history ke sath initialize karo
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
-        const result = await model.generateContent(prompt);
+        
+        // startChat function AI ko purani baatein yaad dilata hai
+        const chatSession = model.startChat({
+            history: historyForGemini
+        });
+
+        // 3. Naya message bhejo
+        const result = await chatSession.sendMessage(prompt);
         const responseText = result.response.text();
 
-        // 2. Database me Chat Save karo
-        let chat = await Chat.findOne({ userEmail });
-
+        // 4. Database me nayi Chat Save karo
         if (!chat) {
-            // Agar pehli baar chat kar raha hai, toh naya Record banao
             chat = new Chat({
                 userEmail,
                 messages: [
@@ -29,14 +44,13 @@ export const generateResponse = async (req, res) => {
                 ]
             });
         } else {
-            // Agar purani chat hai, toh aage messages add kar do
             chat.messages.push({ role: 'user', text: prompt });
             chat.messages.push({ role: 'ai', text: responseText });
         }
 
-        await chat.save(); // MongoDB me permanently save! 🟢
+        await chat.save(); 
 
-        // 3. Frontend par answer bhejo
+        // 5. Frontend par answer bhejo
         res.status(200).json({ answer: responseText });
 
     } catch (error) {
@@ -45,7 +59,6 @@ export const generateResponse = async (req, res) => {
     }
 };
 
-// Naya Function: Purani history fetch karne ke liye
 export const getChatHistory = async (req, res) => {
     try {
         const { userEmail } = req.body;

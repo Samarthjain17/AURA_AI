@@ -1,12 +1,9 @@
 import mongoose from 'mongoose';
 
 const chatSchema = new mongoose.Schema({
-    // User ki email save karenge taaki pata rahe ye chat kiski hai
-    userEmail: { 
-        type: String, 
-        required: true 
-    },
-    // Messages ka array jisme saari baatcheet save hogi
+    userEmail: { type: String, required: true },
+    chatId: { type: String, required: true }, // Naya: Har chat ki unique ID
+    title: { type: String, default: "New Chat" }, // Naya: Chat ka naam (Sidebar me dikhane ke liye)
     messages: [
         {
             role: { type: String, enum: ['user', 'ai'], required: true },

@@ -3,7 +3,6 @@ import axios from 'axios';
 import Sidebar from './components/Sidebar';
 import ChatBox from './components/ChatBox';
 
-// 🔥 THEME CONFIGURATION (Sunset hatakar Pink daal diya)
 export const THEMES = {
   midnight: {
     id: 'midnight', name: '🌌 Midnight Aura',
@@ -51,13 +50,15 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // 🔥 NAYA STATE: Sidebar khula hai ya band
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   const [currentChatId, setCurrentChatId] = useState(() => localStorage.getItem('activeChatId') || null);
   const [isTemporary, setIsTemporary] = useState(() => {
     const savedId = localStorage.getItem('activeChatId');
     return savedId ? savedId.startsWith('temp-') : false;
   });
 
-  // Crash prevent karne ka naya logic
   const [activeThemeId, setActiveThemeId] = useState(() => {
     const saved = localStorage.getItem('aura-theme');
     return THEMES[saved] ? saved : 'midnight';
@@ -90,17 +91,19 @@ function App() {
   if (loading) return <div className={`flex h-screen items-center justify-center ${theme.mainBg} text-white transition-colors duration-500`}>Loading...</div>;
 
   return (
-    // 🔥 Pura background theme.mainBg se control hoga
     <div className={`flex h-screen w-full ${theme.mainBg} text-white overflow-hidden transition-colors duration-500`}>
       <Sidebar 
         user={user} 
         currentChatId={currentChatId} setCurrentChatId={setCurrentChatId} 
         isTemporary={isTemporary} setIsTemporary={setIsTemporary} 
         theme={theme} THEMES={THEMES} activeThemeId={activeThemeId} setActiveThemeId={setActiveThemeId}
+        isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
       />
-      <div className="flex-1 w-full h-full relative overflow-hidden">
-        {/* 🔥 Yahan theme ChatBox ko bheji ja rahi hai */}
-        <ChatBox user={user} currentChatId={currentChatId} isTemporary={isTemporary} theme={theme} />
+      <div className="flex-1 w-full h-full relative overflow-hidden transition-all duration-300">
+        <ChatBox 
+          user={user} currentChatId={currentChatId} isTemporary={isTemporary} 
+          theme={theme} isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} 
+        />
       </div>
     </div>
   );

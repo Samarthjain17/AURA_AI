@@ -1,30 +1,40 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Chat from '../models/chat.model.js';
 
-
 export const generateResponse = async (req, res) => {
     try {
-        // Ab hum isTemporary aur frontendMessages bhi le rahe hain
-        const { prompt, userEmail, chatId, isTemporary, frontendMessages } = req.body; 
+        // 1. Ab hum imageBase64 bhi frontend se receive karenge
+        const { prompt, userEmail, chatId, isTemporary, frontendMessages, imageBase64 } = req.body; 
         
-        if (!prompt) return res.status(400).json({ error: "Prompt is required!" });
+        if (!prompt && !imageBase64) return res.status(400).json({ error: "Prompt or Image is required!" });
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        // gemini-2.5-flash images bhi support karta hai default!
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
+
+        // 2. Message ke "Parts" banao (Text + Image)
+        let messageParts = [{ text: prompt || "Describe this image" }];
+        
+        if (imageBase64) {
+            // Base64 format ko Gemini ke samajhne layk format me badlo
+            const mimeType = imageBase64.split(';')[0].split(':')[1];
+            const base64Data = imageBase64.split(',')[1];
+            messageParts.push({
+                inlineData: { data: base64Data, mimeType }
+            });
+        }
 
         // 🕵️‍♂️ INCOGNITO MODE (No Database Save)
         if (isTemporary) {
-            // Frontend se purani history le lo taaki ek session me context yaad rahe
             let historyForGemini = [];
             if (frontendMessages && frontendMessages.length > 0) {
-                // Pehla welcome message ignore karke baaki history banate hain
                 historyForGemini = frontendMessages.slice(1).map(msg => ({
                     role: msg.role === 'ai' ? 'model' : 'user',
                     parts: [{ text: msg.text }]
                 }));
             }
             const chatSession = model.startChat({ history: historyForGemini });
-            const result = await chatSession.sendMessage(prompt);
+            const result = await chatSession.sendMessage(messageParts); // Send Parts here
             return res.status(200).json({ answer: result.response.text(), title: "Temporary" });
         }
 
@@ -42,17 +52,20 @@ export const generateResponse = async (req, res) => {
         }
         
         const chatSession = model.startChat({ history: historyForGemini });
-        const result = await chatSession.sendMessage(prompt);
+        const result = await chatSession.sendMessage(messageParts); // Send Parts here
         const responseText = result.response.text();
 
+        // 3. Save to DB (Database me image base64 save mat karna, sirf text save karo)
+        const dbUserText = imageBase64 ? `📎 [Image Uploaded]\n${prompt}` : prompt;
+
         if (!chat) {
-            const chatTitle = prompt.length > 30 ? prompt.substring(0, 30) + "..." : prompt;
+            const chatTitle = prompt.length > 30 ? prompt.substring(0, 30) + "..." : prompt || "Image Chat";
             chat = new Chat({
                 userEmail, chatId, title: chatTitle,
-                messages: [{ role: 'user', text: prompt }, { role: 'ai', text: responseText }]
+                messages: [{ role: 'user', text: dbUserText }, { role: 'ai', text: responseText }]
             });
         } else {
-            chat.messages.push({ role: 'user', text: prompt });
+            chat.messages.push({ role: 'user', text: dbUserText });
             chat.messages.push({ role: 'ai', text: responseText });
         }
 

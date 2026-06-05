@@ -8,12 +8,10 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
   const navigate = useNavigate();
   const [chatHistory, setChatHistory] = useState([]);
   
-  // 🟢 States Pop-up aur Undo ke liye
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, chatId: null });
   const [pendingDelete, setPendingDelete] = useState(null);
   const deleteTimeoutRef = useRef(null); 
 
-  // Backend se saari chats fetch karo
   useEffect(() => {
     const fetchChats = async () => {
       if (user?.email) {
@@ -34,30 +32,30 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
 
   const handleNewChat = () => {
     setIsTemporary(false); 
-    setCurrentChatId(Date.now().toString());
+    const newId = Date.now().toString();
+    setCurrentChatId(newId);
+    localStorage.setItem('activeChatId', newId);
   };
 
   const handleTempChat = () => {
     setIsTemporary(true); 
-    setCurrentChatId("temp-" + Date.now()); 
+    const newId = "temp-" + Date.now();
+    setCurrentChatId(newId); 
+    localStorage.setItem('activeChatId', newId);
   };
 
-  // 🗑️ Delete logic with UNDO Timeout
   const confirmDelete = () => {
     const chatId = deleteConfirm.chatId;
     const chatToDelete = chatHistory.find(c => c.chatId === chatId);
 
-    // 1. Pehle screen se turant gayab kardo
     setChatHistory(prev => prev.filter(chat => chat.chatId !== chatId));
     if (currentChatId === chatId) handleNewChat();
     
-    // 2. Undo Box dikhane ke liye data save karo aur Modal band karo
     setPendingDelete(chatToDelete);
     setDeleteConfirm({ isOpen: false, chatId: null });
 
     if (deleteTimeoutRef.current) clearTimeout(deleteTimeoutRef.current);
 
-    // 3. 5 Second ka Timer lagao asli Delete ke liye
     deleteTimeoutRef.current = setTimeout(async () => {
       try {
         await axios.post("http://localhost:8000/api/chat/clear", { 
@@ -71,7 +69,6 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
     }, 5000); 
   };
 
-  // ⏪ UNDO Function: Delete rokne ke liye
   const handleUndo = () => {
     if (deleteTimeoutRef.current) clearTimeout(deleteTimeoutRef.current); 
     if (pendingDelete) {
@@ -81,7 +78,7 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
   };
 
   return (
-    <div className="w-64 bg-[#0A0D14] border-r border-gray-800 flex flex-col h-full shadow-2xl relative z-10 hidden md:flex">
+    <div className="w-64 bg-[#0A0D14] border-r border-gray-800 flex flex-col h-full shadow-2xl relative z-10 hidden md:flex shrink-0">
       
       <div className="p-6">
         <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-400 tracking-wider">
@@ -103,7 +100,13 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
         <div className="flex flex-col gap-2">
           {chatHistory.map((chat) => (
             <div key={chat.chatId} className={`group flex items-center justify-between p-2 rounded-xl transition-all duration-200 text-sm ${currentChatId === chat.chatId && !isTemporary ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'}`}>
-              <button onClick={() => { setIsTemporary(false); setCurrentChatId(chat.chatId); }} className="flex-1 text-left truncate px-1">
+              <button onClick={() => { 
+                  setIsTemporary(false); 
+                  setCurrentChatId(chat.chatId); 
+                  localStorage.setItem('activeChatId', chat.chatId);
+                }} 
+                className="flex-1 text-left truncate px-1"
+              >
                 💬 {chat.title}
               </button>
               
@@ -144,44 +147,26 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
         </button>
       </div>
 
-      {/* 🔴 CONFIRMATION POP-UP (Modal) - Poori Screen Par */}
       {deleteConfirm.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
           <div className="bg-[#1A2031] border border-gray-700 p-6 rounded-2xl w-80 shadow-2xl transform transition-all">
-            <h3 className="text-white font-bold mb-2 text-lg flex items-center gap-2">
-              ⚠️ Delete Chat?
-            </h3>
-            <p className="text-gray-400 text-sm mb-6">
-              Are you sure? This action cannot be undone.
-            </p>
+            <h3 className="text-white font-bold mb-2 text-lg flex items-center gap-2">⚠️ Delete Chat?</h3>
+            <p className="text-gray-400 text-sm mb-6">Are you sure? This action cannot be undone.</p>
             <div className="flex gap-3">
-              <button 
-                onClick={() => setDeleteConfirm({ isOpen: false, chatId: null })} 
-                className="flex-1 bg-gray-700 text-white py-2.5 rounded-xl hover:bg-gray-600 transition-colors font-medium"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={confirmDelete} 
-                className="flex-1 bg-red-600 text-white py-2.5 rounded-xl hover:bg-red-500 transition-colors font-medium shadow-[0_0_15px_rgba(220,38,38,0.4)]"
-              >
-                Yes, Delete
-              </button>
+              <button onClick={() => setDeleteConfirm({ isOpen: false, chatId: null })} className="flex-1 bg-gray-700 text-white py-2.5 rounded-xl hover:bg-gray-600 transition-colors font-medium">Cancel</button>
+              <button onClick={confirmDelete} className="flex-1 bg-red-600 text-white py-2.5 rounded-xl hover:bg-red-500 transition-colors font-medium shadow-[0_0_15px_rgba(220,38,38,0.4)]">Yes, Delete</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ⏪ UNDO TOAST NOTIFICATION (Bottom Right Corner) */}
       {pendingDelete && (
         <div className="fixed bottom-10 right-10 w-72 bg-[#1A2031] text-gray-200 text-base p-4 rounded-2xl flex justify-between items-center shadow-[0_10px_40px_rgba(0,0,0,0.6)] border border-gray-700 z-[100] transform transition-all animate-fade-in-up">
           <div className="flex items-center gap-3">
             <span className="text-xl">🗑️</span>
             <span className="font-medium">Chat deleted</span>
           </div>
-          <button onClick={handleUndo} className="text-purple-400 font-bold hover:text-purple-300 transition-colors px-2 py-1 hover:bg-purple-500/20 rounded-lg">
-            Undo
-          </button>
+          <button onClick={handleUndo} className="text-purple-400 font-bold hover:text-purple-300 transition-colors px-2 py-1 hover:bg-purple-500/20 rounded-lg">Undo</button>
         </div>
       )}
 

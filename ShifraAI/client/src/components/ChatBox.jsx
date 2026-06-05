@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
+// 🔥 Naye imports syntax highlighter ke liye
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const ChatBox = ({ user, currentChatId, isTemporary }) => {
   const [prompt, setPrompt] = useState("");
@@ -138,10 +141,7 @@ const ChatBox = ({ user, currentChatId, isTemporary }) => {
   ];
 
   return (
-    // 🔥 Full screen chat wrapper
     <div className="w-full flex flex-col h-full bg-transparent overflow-x-hidden relative">
-      
-      {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto w-full custom-scrollbar">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-8 flex flex-col gap-8">
           {messages.map((msg, index) => (
@@ -157,14 +157,55 @@ const ChatBox = ({ user, currentChatId, isTemporary }) => {
                       <img src={msg.image} alt="Uploaded preview" className="max-w-[200px] md:max-w-[250px] rounded-xl border border-white/20 shadow-md object-cover"/>
                     )}
                     {msg.text !== "🖼️ Sent an image" && msg.text && (
-                      // 🔥 break-words lagaya taaki lamba text chat se bahar na aaye
                       <p className="leading-relaxed whitespace-pre-wrap break-words">{msg.text}</p>
                     )}
                   </div>
                 ) : (
-                  // 🔥 overflow-x-auto taaki AI ka lamba code block yahi scroll ho
-                  <div className="leading-relaxed whitespace-pre-wrap flex flex-col gap-3 text-sm md:text-base prose prose-invert max-w-none overflow-x-auto break-words">
-                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  <div className="leading-relaxed whitespace-pre-wrap flex flex-col gap-3 text-sm md:text-base prose prose-invert max-w-none break-words">
+                    
+                    {/* 🔥 Yahan humne ReactMarkdown ko Code Highlighter sikha diya hai */}
+                    <ReactMarkdown
+                      components={{
+                        code({ node, inline, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          const codeString = String(children).replace(/\n$/, '');
+                          
+                          return !inline && match ? (
+                            <div className="relative mt-4 mb-4 rounded-xl overflow-hidden bg-[#1E1E1E] border border-white/10 shadow-lg">
+                              <div className="flex justify-between items-center px-4 py-2 bg-[#2D2D2D] text-xs text-gray-400 border-b border-white/5">
+                                <span className="uppercase font-semibold tracking-wider">{match[1]}</span>
+                                <button 
+                                  onClick={(e) => {
+                                    navigator.clipboard.writeText(codeString);
+                                    e.target.innerText = "Copied! ✔";
+                                    setTimeout(() => e.target.innerText = "Copy", 2000);
+                                  }}
+                                  className="hover:text-white transition-colors flex items-center gap-1 bg-white/5 px-2 py-1 rounded-md hover:bg-white/10"
+                                >
+                                  Copy
+                                </button>
+                              </div>
+                              <SyntaxHighlighter
+                                style={vscDarkPlus}
+                                language={match[1]}
+                                PreTag="div"
+                                customStyle={{ margin: 0, padding: '1rem', background: 'transparent' }}
+                                {...props}
+                              >
+                                {codeString}
+                              </SyntaxHighlighter>
+                            </div>
+                          ) : (
+                            <code className="bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded-md font-mono text-sm" {...props}>
+                              {children}
+                            </code>
+                          );
+                        }
+                      }}
+                    >
+                      {msg.text}
+                    </ReactMarkdown>
+
                   </div>
                 )}
                 
@@ -202,7 +243,6 @@ const ChatBox = ({ user, currentChatId, isTemporary }) => {
         </div>
       </div>
 
-      {/* Input Form Area */}
       <div className="w-full bg-transparent px-4 pb-4 sm:px-6 sm:pb-6 relative z-10">
         <div className="max-w-5xl mx-auto w-full relative">
           {showAttachMenu && (

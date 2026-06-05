@@ -8,6 +8,9 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
   const navigate = useNavigate();
   const [chatHistory, setChatHistory] = useState([]);
   
+  // 🔥 NAYA STATE: Search query ke liye
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, chatId: null });
   const [pendingDelete, setPendingDelete] = useState(null);
   const deleteTimeoutRef = useRef(null); 
@@ -77,10 +80,16 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
     }
   };
 
+  // 🔥 FILTER LOGIC: Search input ke hisaab se chats filter hongi
+  const filteredChats = chatHistory.filter(chat => 
+    chat.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="w-64 bg-[#0A0D14] border-r border-gray-800 flex flex-col h-full shadow-2xl relative z-10 hidden md:flex shrink-0">
+    // 🔥 Yahan z-[100] pehle se fixed hai
+    <div className="w-64 bg-[#0A0D14] border-r border-gray-800 flex flex-col h-full shadow-2xl relative z-[100] hidden md:flex shrink-0">
       
-      <div className="p-6">
+      <div className="p-6 pb-4">
         <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-400 tracking-wider">
           AURA AI
         </h1>
@@ -95,32 +104,55 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 custom-scrollbar">
-        <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">Recent Chats</p>
-        <div className="flex flex-col gap-2">
-          {chatHistory.map((chat) => (
-            <div key={chat.chatId} className={`group flex items-center justify-between p-2 rounded-xl transition-all duration-200 text-sm ${currentChatId === chat.chatId && !isTemporary ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'}`}>
-              <button onClick={() => { 
-                  setIsTemporary(false); 
-                  setCurrentChatId(chat.chatId); 
-                  localStorage.setItem('activeChatId', chat.chatId);
-                }} 
-                className="flex-1 text-left truncate px-1"
-              >
-                💬 {chat.title}
-              </button>
-              
-              <button 
-                onClick={() => setDeleteConfirm({ isOpen: true, chatId: chat.chatId })} 
-                className="opacity-0 group-hover:opacity-100 text-white hover:text-red-500 p-1 transition-all duration-300 transform hover:scale-110" 
-                title="Delete Chat"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                </svg>
-              </button>
+      <div className="flex-1 overflow-y-auto px-4 custom-scrollbar flex flex-col">
+        
+        {/* 🔥 SEARCH BAR COMPONENT */}
+        <div className="mb-4 relative shrink-0">
+          <input
+            type="text"
+            placeholder="Search chats..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#131825] border border-gray-700 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-all placeholder-gray-500"
+          />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 absolute left-3.5 top-3 text-gray-500">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </div>
+
+        <p className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider shrink-0">Recent Chats</p>
+        
+        <div className="flex flex-col gap-2 overflow-y-auto custom-scrollbar pb-2">
+          {/* 🔥 Ab hum filteredChats ko map kar rahe hain */}
+          {filteredChats.length > 0 ? (
+            filteredChats.map((chat) => (
+              <div key={chat.chatId} className={`group flex items-center justify-between p-2 rounded-xl transition-all duration-200 text-sm shrink-0 ${currentChatId === chat.chatId && !isTemporary ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'}`}>
+                <button onClick={() => { 
+                    setIsTemporary(false); 
+                    setCurrentChatId(chat.chatId); 
+                    localStorage.setItem('activeChatId', chat.chatId);
+                  }} 
+                  className="flex-1 text-left truncate px-1"
+                >
+                  💬 {chat.title}
+                </button>
+                
+                <button 
+                  onClick={() => setDeleteConfirm({ isOpen: true, chatId: chat.chatId })} 
+                  className="opacity-0 group-hover:opacity-100 text-white hover:text-red-500 p-1 transition-all duration-300 transform hover:scale-110" 
+                  title="Delete Chat"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                  </svg>
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-gray-600 text-xs mt-4">
+              {searchQuery ? "No chats found" : "No recent chats"}
             </div>
-          ))}
+          )}
         </div>
       </div>
 

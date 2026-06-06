@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { auth } from '../utils/firebase.js'; 
 import { signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemporary, theme, THEMES, activeThemeId, setActiveThemeId, isSidebarOpen, setIsSidebarOpen }) => {
-  const navigate = useNavigate();
   const [chatHistory, setChatHistory] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingChatId, setEditingChatId] = useState(null);
@@ -14,6 +12,7 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
   const [pendingDelete, setPendingDelete] = useState(null);
   const deleteTimeoutRef = useRef(null); 
   const [showSettings, setShowSettings] = useState(false);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
 
   useEffect(() => {
     const fetchChats = async () => {
@@ -27,7 +26,27 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
     if (!isTemporary) fetchChats();
   }, [user, currentChatId, isTemporary]);
 
-  const handleLogout = async () => { try { await signOut(auth); navigate('/login'); } catch (error) {} };
+  const confirmLogout = async () => {
+    // Popup band karo pehle hi
+    setLogoutConfirm(false); 
+    
+    // 1. Firebase Logout (Agar fail hua toh bhi aage badho)
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.log("Firebase logout skip hua:", error.message);
+    }
+
+    // 2. Backend Cookie Clear (Agar server band ho toh bhi aage badho)
+    try {
+      await axios.post("http://localhost:8000/api/user/logout", {}, { withCredentials: true });
+    } catch (error) {
+      console.log("Backend cookie clear skip hua.");
+    }
+
+    // 3. BRAHMASTRA: Chahe jo ho jaye, Login page par bhej do!
+    window.location.replace('/login'); 
+  };
   const handleNewChat = () => { setIsTemporary(false); const newId = Date.now().toString(); setCurrentChatId(newId); localStorage.setItem('activeChatId', newId); };
   const handleTempChat = () => { setIsTemporary(true); const newId = "temp-" + Date.now(); setCurrentChatId(newId); localStorage.setItem('activeChatId', newId); };
 
@@ -60,14 +79,12 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
   const filteredChats = chatHistory.filter(chat => chat.title?.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    // 🔥 YAHAN CHANGE KIYA HAI: w-64 ki jagah w-72 kar diya taaki thoda aur chauda (wide) ho jaye
     <div className={`w-72 ${theme.sidebarBg} border-r border-white/5 flex-col h-full shadow-2xl relative z-[100] ${isSidebarOpen ? 'flex' : 'hidden'} shrink-0 transition-colors duration-500`}>
       
       <div className="p-6 pb-4 flex justify-between items-center">
         <h1 className={`text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${theme.gradientText} tracking-wider`}>
           AURA AI
         </h1>
-        {/* SIDEBAR CLOSE BUTTON */}
         <button onClick={() => setIsSidebarOpen(false)} className="text-gray-400 hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors" title="Close Sidebar">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
         </button>
@@ -131,7 +148,9 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
         </div>
         <div className="flex gap-3">
           <button onClick={() => setShowSettings(true)} className="flex-1 flex items-center justify-center gap-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-2.5 rounded-lg transition-all duration-300 font-medium text-sm">⚙️ Settings</button>
-          <button onClick={handleLogout} className="flex-1 flex items-center justify-center gap-2 text-gray-400 hover:text-white bg-white/5 hover:bg-red-500/20 hover:border-red-500/50 border border-transparent p-2.5 rounded-lg transition-all duration-300 group font-medium text-sm"><span className="group-hover:text-red-400 transition-colors">Logout</span></button>
+          <button onClick={() => setLogoutConfirm(true)} className="flex-1 flex items-center justify-center gap-2 text-gray-400 hover:text-white bg-white/5 hover:bg-red-500/20 hover:border-red-500/50 border border-transparent p-2.5 rounded-lg transition-all duration-300 group font-medium text-sm">
+            <span className="group-hover:text-red-400 transition-colors">Logout</span>
+          </button>
         </div>
       </div>
 
@@ -155,9 +174,23 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
 
       {deleteConfirm.isOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className={`${theme.sidebarBg} border border-white/10 p-6 rounded-2xl w-80 shadow-2xl`}><h3 className="text-white font-bold mb-2">⚠️ Delete Chat?</h3><div className="flex gap-3 mt-6"><button onClick={() => setDeleteConfirm({ isOpen: false, chatId: null })} className="flex-1 bg-white/10 text-white py-2 rounded-xl">Cancel</button><button onClick={confirmDelete} className="flex-1 bg-red-600/80 text-white py-2 rounded-xl">Yes, Delete</button></div></div>
+          <div className={`${theme.sidebarBg} border border-white/10 p-6 rounded-2xl w-80 shadow-2xl`}><h3 className="text-white font-bold mb-2">⚠️ Delete Chat?</h3><div className="flex gap-3 mt-6"><button onClick={() => setDeleteConfirm({ isOpen: false, chatId: null })} className="flex-1 bg-white/10 text-white py-2 rounded-xl hover:bg-white/20 transition-colors">Cancel</button><button onClick={confirmDelete} className="flex-1 bg-red-600/80 text-white py-2 rounded-xl hover:bg-red-500 transition-colors">Yes, Delete</button></div></div>
         </div>
       )}
+
+      {logoutConfirm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className={`${theme.sidebarBg} border border-white/10 p-6 rounded-2xl w-80 shadow-2xl transform transition-all animate-fade-in-up`}>
+            <h3 className="text-white font-bold mb-2 text-lg flex items-center gap-2">👋 Leaving so soon?</h3>
+            <p className="text-gray-400 text-sm mb-6">Are you sure you want to log out of AURA AI?</p>
+            <div className="flex gap-3">
+              <button onClick={() => setLogoutConfirm(false)} className="flex-1 bg-white/10 text-white py-2.5 rounded-xl hover:bg-white/20 transition-colors font-medium">Cancel</button>
+              <button onClick={confirmLogout} className="flex-1 bg-red-600/80 text-white py-2.5 rounded-xl hover:bg-red-500 transition-colors font-medium shadow-[0_0_15px_rgba(220,38,38,0.4)]">Yes, Logout</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {pendingDelete && (
         <div className={`fixed bottom-10 right-10 w-72 ${theme.sidebarBg} text-gray-200 text-base p-4 rounded-2xl flex justify-between items-center shadow-2xl border border-white/10 z-[200]`}>
           <div className="flex items-center gap-3"><span>🗑️</span><span className="font-medium">Deleted</span></div>

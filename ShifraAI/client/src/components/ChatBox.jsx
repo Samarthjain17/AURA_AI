@@ -4,7 +4,6 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-// Props me isSidebarOpen, setIsSidebarOpen add kiya
 const ChatBox = ({ user, currentChatId, isTemporary, theme, isSidebarOpen, setIsSidebarOpen }) => {
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState([]);
@@ -17,7 +16,6 @@ const ChatBox = ({ user, currentChatId, isTemporary, theme, isSidebarOpen, setIs
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null); 
   const menuRef = useRef(null); 
-
   const messagesEndRef = useRef(null);
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
@@ -125,7 +123,7 @@ const ChatBox = ({ user, currentChatId, isTemporary, theme, isSidebarOpen, setIs
   return (
     <div className="w-full flex flex-col h-full bg-transparent overflow-x-hidden relative transition-colors duration-500">
       
-      {/* 🔥 OPEN SIDEBAR BUTTON (HAMBURGER) - Left Side */}
+      {/* HAMBURGER MENU BUTTON */}
       {!isSidebarOpen && (
         <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-[60] animate-fade-in-down">
           <button 
@@ -140,24 +138,25 @@ const ChatBox = ({ user, currentChatId, isTemporary, theme, isSidebarOpen, setIs
         </div>
       )}
 
-      {/* EXPORT BUTTON - Right Side */}
+      {/* EXPORT BUTTON */}
       {!isTemporary && (
         <div className="absolute top-4 right-4 sm:top-6 sm:right-10 z-[60] animate-fade-in-down">
           <button 
             onClick={handleExportChat} 
-            className={`flex items-center gap-2 text-xs font-semibold ${theme.accentTextLight} hover:text-white bg-black/20 backdrop-blur-md border ${theme.accentBorder} hover:${theme.accentBgLight} px-4 py-2.5 rounded-full transition-all shadow-lg hover:scale-105`}
+            className={`flex items-center gap-2.5 text-sm font-bold ${theme.accentTextLight} hover:text-white bg-black/20 backdrop-blur-md border-2 ${theme.accentBorder} hover:${theme.accentBgLight} px-5 py-2.5 rounded-full transition-all shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:scale-105`}
             title="Download Conversation"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
             Export Chat
           </button>
         </div>
       )}
 
-      {/* Chat Messages Area */}
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto w-full custom-scrollbar pt-16 sm:pt-20">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-8 flex flex-col gap-8">
-          
           {messages.map((msg, index) => (
             <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} group animate-fade-in-up w-full`}>
               {msg.role === 'ai' && (
@@ -226,6 +225,7 @@ const ChatBox = ({ user, currentChatId, isTemporary, theme, isSidebarOpen, setIs
         </div>
       </div>
 
+      {/* Input */}
       <div className="w-full bg-transparent px-4 pb-4 sm:px-6 sm:pb-6 relative z-10">
         <div className="max-w-5xl mx-auto w-full relative">
           {showAttachMenu && (

@@ -1,43 +1,92 @@
 import User from "../models/user.model.js";
 
-export const getCurrentUser = async (req, res) => {
+// 🚀 SAAS: ASSISTANT SETTINGS SAVE KARNE WALI API 🚀
+export const saveAssistantSettings = async (req, res) => {
     try {
-        // req.userId humein isAuth middleware se mila hai
-        const user = await User.findById(req.userId);
+        const { 
+            userEmail, 
+            assistantName, 
+            businessName, 
+            businessType, 
+            businessDescription, 
+            tone, 
+            theme, 
+            geminiApiKey 
+        } = req.body;
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
+        if (!userEmail) {
+            return res.status(400).json({ error: "User email is required!" });
         }
 
-        // User mil gaya toh frontend ko bhej do
-        return res.status(200).json({
-            message: "User found successfully",
-            user: user
+        const updatedUser = await User.findOneAndUpdate(
+            { email: userEmail }, 
+            {
+                assistantName,
+                businessName,
+                businessType,
+                businessDescription,
+                tone,
+                theme,
+                geminiApiKey,
+                isSetupComplete: true 
+            },
+            { new: true, upsert: true } 
+        );
+
+        res.status(200).json({ 
+            message: "Assistant Saved Successfully! ✨", 
+            user: updatedUser 
         });
 
     } catch (error) {
-        console.log("Get Current User Error:", error);
-        return res.status(500).json({ message: "Server Error fetching user" });
+        console.error("❌ Save Assistant Error:", error);
+        res.status(500).json({ error: "Server Error: Failed to save assistant settings." });
     }
 };
 
-// 🔥 LOGOUT CONTROLLER (Cookie Killer)
+// 🔍 GET SETTINGS API (Dashboard Form pre-fill karne ke liye)
+export const getUserSettings = async (req, res) => {
+    try {
+        const { email } = req.params;
+        const user = await User.findOne({ email });
+        
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("❌ Get Settings Error:", error);
+        res.status(500).json({ error: "Server Error: Failed to fetch settings." });
+    }
+};
+
+// 👤 GET CURRENT USER API
+export const getCurrentUser = async (req, res) => {
+    try {
+        const userId = req.user?._id || req.userId; 
+        
+        if (!userId && req.user) {
+            return res.status(200).json(req.user);
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("❌ Get Current User Error:", error);
+        res.status(500).json({ error: "Server Error: Failed to get current user." });
+    }
+};
+
+// 🚪 LOGOUT USER API
 export const logoutUser = async (req, res) => {
-  try {
-    // res.clearCookie ke andar us cookie ka naam daalna jo tum login ke time set karte ho.
-    // Usually ye 'token' ya 'access_token' hota hai. Main 'token' maan kar chal raha hoon:
-    res.clearCookie('token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
-    });
-    
-    return res.status(200).json({
-      success: true,
-      message: "Successfully logged out and cookie cleared!"
-    });
-  } catch (error) {
-    console.error("Logout Error:", error);
-    return res.status(500).json({ success: false, message: "Internal server error during logout" });
-  }
+    try {
+        res.clearCookie("token"); 
+        res.status(200).json({ message: "Logged out successfully! 👋" });
+    } catch (error) {
+        console.error("❌ Logout Error:", error);
+        res.status(500).json({ error: "Server Error: Failed to logout." });
+    }
 };

@@ -1,10 +1,15 @@
 import express from 'express';
-import { getCurrentUser, logoutUser } from '../controllers/user.controller.js';
+import { getCurrentUser, logoutUser, saveAssistantSettings, getUserSettings } from '../controllers/user.controller.js';
 import { isAuth } from '../middleware/isAuth.js';
 
 const router = express.Router();
-// Jab koi "/current-user" pe GET request karega, toh pehle isAuth check karega, fir getCurrentUser chalega
+
+// 👤 Auth endpoints
 router.get('/current-user', isAuth, getCurrentUser);
 router.post('/logout', logoutUser);
+
+// 🚀 SaaS Builder endpoints
+router.post('/save-assistant', isAuth, saveAssistantSettings);
+router.get('/get-settings/:email', isAuth, getUserSettings);
 
 export default router;

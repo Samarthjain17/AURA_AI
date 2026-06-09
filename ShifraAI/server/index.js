@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.route.js';
 import userRoutes from './routes/user.route.js';
 import chatRoutes from './routes/chat.route.js';
 
+
 dotenv.config();
 const app = express();
 
@@ -24,6 +25,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/chat', chatRoutes);
 
+
+// File ke beech mein jahan baaki app.use() likhe hain
+app.use("/api", userRoutes);
+
 app.get('/', (req, res) => {
     res.json({ message: "Hello from Your Unique AI Assistant Backend! 🔥" });
 });
@@ -34,3 +39,4 @@ app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT} 🚀`);
     connectDB();
 });
+

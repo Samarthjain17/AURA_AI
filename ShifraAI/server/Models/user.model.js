@@ -1,141 +1,107 @@
 import mongoose from "mongoose";
+
 const pageSchema = new mongoose.Schema(
     {
-    name: String,
-
-    path:String,
-
-    keywords: {
-       type :[String],
-       default :  [],
-       },
+        name: String,
+        path: String,
+        keywords: {
+            type: [String],
+            default: [],
+        },
     },
-    {_id: false}
-)
+    { _id: false }
+);
+
 const userSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:true,
+    // Basic Authentication Details
+    name: {
+        type: String,
+        required: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true
     },
 
-    email:{
-        type:String,
-        required:true,
-        unique:true
+    // SaaS Custom Assistant Details
+    assistantName: {
+        type: String,
+        default: "AURA"
     },
-    assistantName:{
-        type:String,
-        default:"Shifra"
-
+    businessName: {
+        type: String,
+        default: ""
     },
-
-
-    BusinessName:{
-        type:String,
-        Default:""
+    businessType: {
+        type: String,
+        default: ""
     },
-
-    BusinessType:{
-        type:String,
-        default:""
-
+    businessDescription: {
+        type: String,
+        default: ""
     },
-
-    BusinessDescription:{
-        type:String,
-        default:""
-
+    tone: {
+        type: String,
+        enum: ["friendly", "professional", "sales"],
+        default: "friendly"
     },
-    tone:{
-        type:String,
-        enum: [
-        "friendly",
-        "professional",
-        "sales",
-    ],
-    default:"friendly"
+    theme: {
+        type: String,
+        enum: ["dark", "light", "glass", "neon"],
+        default: "dark"
     },
-
-    theme:{
-        type:String,
-        enum:[
-            "dark",
-            "light",
-            "glass",
-            "neon"
-        ],
-        default:"dark"
-
-        
+    
+    // Feature Toggles & Customization
+    enableVoice: {
+        type: Boolean,
+        default: true
+    },
+    enableNavigation: {
+        type: Boolean,
+        default: true
+    },
+    pages: {
+        type: [pageSchema],
+        default: []
     },
 
-
-    enableVoice:{
-        type:Boolean,
-        default:true
+    // Gemini Engine Details
+    geminiApiKey: {
+        type: String,
+        default: ""
     },
-    pages:{
-        type:[pageSchema],
-        default:[]
-    },
-
-
-    enableNevigation:{
-        type:Boolean,
-        default:true
+    geminiStatus: {
+        type: String,
+        enum: ["active", "quota exceeded", "invalid"],
+        default: "active"
     },
 
-    geminiApiKey:{
-
-        type:String,
-        default:""
-
+    // SaaS Billing & Plan Limits
+    totalMessages: {
+        type: Number,
+        default: 0
     },
-
-
-    geminiStatus:{
-        type:String,
-        enum:[
-        "active",
-        "quota exceeded",
-        "inavalid", 
-        ],
-        default:"active"
+    plan: {
+        type: String,
+        enum: ["free", "pro"],
+        default: "free"
     },
-
-    totalMessages:{
-        type:Number,
-        default:0
-    },
-
-    plan:{
-        type:String,
-        enum:[
-            "free",
-            "pro"
-        ] ,
-        default:"free"
-    },
-
-    requestLimit:{
+    requestLimit: {
         type: Number,
         default: 200,
     },
-
-
-    proExpiresAt:{
-        type:Date,
+    proExpiresAt: {
+        type: Date,
         default: null,
     },
 
-
-    isSetupComplete:{
-        type:Boolean,
+    // Setup Status
+    isSetupComplete: {
+        type: Boolean,
         default: false
     }
-},{timestamps:true})
+}, { timestamps: true });
 
-
-const  User = mongoose.model("User", userSchema)
-
-export default User
+const User = mongoose.model("User", userSchema);
+export default User;

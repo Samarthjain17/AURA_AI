@@ -6,6 +6,7 @@ import connectDB from './config/connectDB.js';
 import authRoutes from './routes/auth.route.js';
 import userRoutes from './routes/user.route.js';
 import chatRoutes from './routes/chat.route.js';
+import widgetRoutes from './routes/widget.route.js';
 
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use(cors({
 app.use('/api/auth', authRoutes); 
 app.use('/api/user', userRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/widget', widgetRoutes);
 
 
 // File ke beech mein jahan baaki app.use() likhe hain

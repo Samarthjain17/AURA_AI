@@ -37,10 +37,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
-    businessDescription: {
-        type: String,
-        default: ""
-    },
+
+    
+    businessDescription: { type: String, default: "" },
+    // 🔥 NAYA: RAG Engine ke liye
+    websiteUrl: { type: String, default: "" },
+    scrapedContent: { type: String, default: "" },
+
+
     tone: {
         type: String,
         enum: ["friendly", "professional", "sales"],
@@ -51,7 +55,7 @@ const userSchema = new mongoose.Schema({
         enum: ["dark", "light", "glass", "neon"],
         default: "dark"
     },
-    
+
     // Feature Toggles & Customization
     enableVoice: {
         type: Boolean,
@@ -82,6 +86,14 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+
+    leads: [{
+        contactInfo: String,
+        message: String,
+        createdAt: { type: Date, default: Date.now }
+    }],
+
+    plan: { type: String, enum: ['free', 'pro'], default: 'free' },
     plan: {
         type: String,
         enum: ["free", "pro"],

@@ -187,6 +187,40 @@ const Builder = ({ user, setUser }) => {
             </div>
           </form>
 
+          {/* 🔥 NEW FLEX: Acquired Leads Section 🔥 */}
+        {user?.leads && user.leads.length > 0 && (
+          <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 animate-fade-in-up">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">🎯 Acquired Leads</h2>
+              <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm font-bold">
+                {user.leads.length} New Leads
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50 rounded-t-xl">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Info</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User's Message</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {user.leads.map((lead, index) => (
+                    <tr key={index} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-600">{lead.contactInfo}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700 italic">"{lead.message}"</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(lead.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
           {/* 🔥 EMBED CODE SECTION 🔥 */}
           {user?._id && (
             <div className="bg-gray-50 px-10 py-8 border-t border-gray-200">

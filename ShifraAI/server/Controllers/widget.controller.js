@@ -28,32 +28,75 @@ export const askWidget = async (req, res) => {
         const lowerMsg = message.toLowerCase();
 
         // 3. Smart Voice Navigation Logic 🧭
-        if (user.enableNavigation && user.pages && user.pages.length > 0) {
-            const navKeywords = ["open", "go to", "navigate to", "show", "take me to"];
-            const isNavCommand = navKeywords.some(kw => lowerMsg.startsWith(kw));
+        const navKeywords = ["open", "go to", "navigate to", "show", "take me to"];
+        const isNavCommand = navKeywords.some(kw => lowerMsg.startsWith(kw));
 
-            if (isNavCommand) {
-                // Find matching page from user's builder settings
-                const matchedPage = user.pages.find(page => 
-                    page.keywords.some(kw => lowerMsg.includes(kw.toLowerCase())) || 
-                    lowerMsg.includes(page.name.toLowerCase())
-                );
+        if (isNavCommand) {
+            // 🔥 DEMO ROUTES: Agar database mein pages nahi hain, toh inko use karega 🔥
+            const demoPages = [
+                { name: "builder", keywords: ["builder", "dashboard"], path: "/builder" },
+                { name: "home", keywords: ["home", "main"], path: "/" }
+            ];
 
-                if (matchedPage) {
-                    // Deduct Limit & Return Navigation Command
-                    if (user.plan === "free") user.totalMessages += 1;
-                    await user.save();
-                    
-                    return res.status(200).json({ 
-                        action: "navigate", 
-                        path: matchedPage.path 
-                    });
-                }
+            const availablePages = (user.pages && user.pages.length > 0) ? user.pages : demoPages;
+
+            const matchedPage = availablePages.find(page => 
+                page.keywords.some(kw => lowerMsg.includes(kw.toLowerCase())) || 
+                lowerMsg.includes(page.name.toLowerCase())
+            );
+
+            if (matchedPage) {
+                if (user.plan === "free") user.totalMessages += 1;
+                await user.save();
+                
+                return res.status(200).json({ 
+                    action: "navigate", 
+                    path: matchedPage.path 
+                });
             }
         }
 
-        // 4. Custom AI Response Generation 🧠
-        // Use User's custom API key if provided, else use Server's default API key
+        // 4. 🚀 PHASE 2: Human Handoff & Lead Capture Engine 🚀
+        // Convert spoken "at the rate" to "@" and "dot" to "."
+        let processedMsg = lowerMsg
+            .replace(/at the rate/g, "@")
+            .replace(/ dot /g, ".")
+            .replace(/\s+@\s+/g, "@")   // Remove accidental spaces around @
+            .replace(/\s*\.\s*/g, "."); // Remove accidental spaces around dot
+
+        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+        const phoneRegex = /\b\d{10}\b/; // Simple 10 digit phone regex
+
+        const hasContactInfo = emailRegex.test(processedMsg) || phoneRegex.test(processedMsg.replace(/\s+/g, ""));
+        const asksForHuman = ["human", "contact", "call me", "support", "talk to someone", "help"].some(kw => processedMsg.includes(kw));
+
+        // Scenario A: User gave contact info (Save to DB)
+        if (hasContactInfo) {
+            const contactInfo = processedMsg.match(emailRegex)?.[0] || processedMsg.replace(/\s+/g, "").match(phoneRegex)?.[0];
+            
+            user.leads.push({ 
+                contactInfo: contactInfo, 
+                message: message 
+            });
+            if (user.plan === "free") user.totalMessages += 1;
+            await user.save();
+
+            return res.status(200).json({ 
+                answer: "Got it! I have securely saved your contact details. Our human team will reach out to you shortly." 
+            });
+        } 
+        
+        // Scenario B: User asked for human, but hasn't given info yet
+        else if (asksForHuman) {
+            if (user.plan === "free") user.totalMessages += 1;
+            await user.save();
+            
+            return res.status(200).json({ 
+                answer: "I can connect you with our human support team. Please share your email ID or phone number." 
+            });
+        }
+
+        // 5. Custom AI Response Generation (Gemini API) 🧠
         let apiKey = user.geminiApiKey;
         if (!apiKey) {
             const envKeys = process.env.GEMINI_API_KEYS;
@@ -63,22 +106,32 @@ export const askWidget = async (req, res) => {
         if (!apiKey) throw new Error("No API Key available");
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        // Using 1.5-flash to avoid '503 Service Unavailable' errors from heavy traffic
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         // 🔥 THE MAGIC PROMPT (Trained on Builder Data) 🔥
+        // 🔥 THE MAGIC RAG PROMPT 🔥
         const systemPrompt = `
             You are ${user.assistantName}, a ${user.tone} and helpful AI voice assistant for a business named "${user.businessName}".
             Business Type: ${user.businessType}.
-            Business Details/Rules: ${user.businessDescription}.
+            Manual Business Rules: ${user.businessDescription}.
+            
+            Website Knowledge Base (Scraped Data):
+            """
+            ${user.scrapedContent ? user.scrapedContent : "No website data provided."}
+            """
             
             Strict Rules:
             1. Keep your answers very short, concise, and conversational (1-2 lines max) because they will be converted to speech.
             2. NEVER use markdown (no asterisks **, hashtags #, or bold text).
-            3. Answer STRICTLY based on the business details provided above. If the user asks something unrelated to the business, politely decline.
+            3. Answer STRICTLY based on the Manual Rules and Website Knowledge Base provided above. If the user asks something unrelated to this business, politely decline.
         `;
 
         const chatSession = model.startChat({
-            history: [{ role: "user", parts: [{ text: systemPrompt }] }, { role: "model", parts: [{ text: "Understood. I will follow these instructions." }] }]
+            history: [
+                { role: "user", parts: [{ text: systemPrompt }] }, 
+                { role: "model", parts: [{ text: "Understood. I will follow these instructions strictly." }] }
+            ]
         });
 
         const result = await chatSession.sendMessage(message);
@@ -87,7 +140,7 @@ export const askWidget = async (req, res) => {
         // Clean markdown just in case
         answer = answer.replace(/[*_#`]/g, '');
 
-        // 5. Update SaaS Usage 📈
+        // 6. Update SaaS Usage 📈
         if (user.plan === "free") user.totalMessages += 1;
         await user.save();
 

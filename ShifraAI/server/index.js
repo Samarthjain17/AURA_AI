@@ -7,7 +7,7 @@ import authRoutes from './routes/auth.route.js';
 import userRoutes from './routes/user.route.js';
 import chatRoutes from './routes/chat.route.js';
 import widgetRoutes from './routes/widget.route.js';
-
+import scraperRoutes from './routes/scraper.route.js';
 
 dotenv.config();
 const app = express();
@@ -26,7 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/widget', widgetRoutes);
-
+app.use('/api/scraper', scraperRoutes);
 
 // File ke beech mein jahan baaki app.use() likhe hain
 app.use("/api", userRoutes);

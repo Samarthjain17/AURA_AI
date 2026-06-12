@@ -5,8 +5,8 @@ import Sidebar from '../components/Sidebar';
 import ChatBox from '../components/ChatBox';
 
 export const THEMES = {
-  midnight: { id: 'midnight', name: '🌌 Midnight Aura', mainBg: 'bg-[#0B0F19]', sidebarBg: 'bg-[#0A0D14]', accentText: 'text-purple-400', accentTextLight: 'text-purple-300', accentBgLight: 'bg-purple-500/20', accentBorder: 'border-purple-500/50', accentRing: 'focus-within:ring-purple-500/30', userMsgBg: 'bg-gradient-to-br from-purple-600 to-indigo-600', aiIconBg: 'bg-gradient-to-tr from-purple-500 to-indigo-500', buttonBg: 'bg-gradient-to-r from-purple-600 to-indigo-600', hoverText: 'hover:text-purple-400', shadowAi: 'shadow-[0_0_10px_rgba(147,51,234,0.3)]', shadowBtn: 'shadow-[0_0_15px_rgba(147,51,234,0.4)]', loader: 'bg-purple-500', gradientText: 'from-purple-400 to-indigo-400' },
-  cyber: { id: 'cyber', name: '🟢 Cyber Matrix', mainBg: 'bg-[#050505]', sidebarBg: 'bg-[#000000]', accentText: 'text-emerald-400', accentTextLight: 'text-emerald-300', accentBgLight: 'bg-emerald-500/20', accentBorder: 'border-emerald-500/50', accentRing: 'focus-within:ring-emerald-500/30', userMsgBg: 'bg-gradient-to-br from-green-600 to-emerald-800', aiIconBg: 'bg-gradient-to-tr from-green-400 to-emerald-500', buttonBg: 'bg-gradient-to-r from-green-600 to-emerald-600', hoverText: 'hover:text-emerald-400', shadowAi: 'shadow-[0_0_10px_rgba(16,185,129,0.3)]', shadowBtn: 'shadow-[0_0_15px_rgba(16,185,129,0.4)]', loader: 'bg-emerald-500', gradientText: 'from-green-400 to-emerald-400' },
+  midnight: { id: 'midnight', name: '✨ Midnight Aura', mainBg: 'bg-[#0B0F19]', sidebarBg: 'bg-[#0A0D14]', accentText: 'text-purple-400', accentTextLight: 'text-purple-300', accentBgLight: 'bg-purple-500/20', accentBorder: 'border-purple-500/50', accentRing: 'focus-within:ring-purple-500/30', userMsgBg: 'bg-gradient-to-br from-purple-600 to-indigo-600', aiIconBg: 'bg-gradient-to-tr from-purple-500 to-indigo-500', buttonBg: 'bg-gradient-to-r from-purple-600 to-indigo-600', hoverText: 'hover:text-purple-400', shadowAi: 'shadow-[0_0_10px_rgba(147,51,234,0.3)]', shadowBtn: 'shadow-[0_0_15px_rgba(147,51,234,0.4)]', loader: 'bg-purple-500', gradientText: 'from-purple-400 to-indigo-400' },
+  cyber: { id: 'cyber', name: '💻 Cyber Matrix', mainBg: 'bg-[#050505]', sidebarBg: 'bg-[#000000]', accentText: 'text-emerald-400', accentTextLight: 'text-emerald-300', accentBgLight: 'bg-emerald-500/20', accentBorder: 'border-emerald-500/50', accentRing: 'focus-within:ring-emerald-500/30', userMsgBg: 'bg-gradient-to-br from-green-600 to-emerald-800', aiIconBg: 'bg-gradient-to-tr from-green-400 to-emerald-500', buttonBg: 'bg-gradient-to-r from-green-600 to-emerald-600', hoverText: 'hover:text-emerald-400', shadowAi: 'shadow-[0_0_10px_rgba(16,185,129,0.3)]', shadowBtn: 'shadow-[0_0_15px_rgba(16,185,129,0.4)]', loader: 'bg-emerald-500', gradientText: 'from-green-400 to-emerald-400' },
   pink: { id: 'pink', name: '🌸 Sakura Pink', mainBg: 'bg-[#170a11]', sidebarBg: 'bg-[#0d0509]', accentText: 'text-pink-400', accentTextLight: 'text-pink-300', accentBgLight: 'bg-pink-500/20', accentBorder: 'border-pink-500/50', accentRing: 'focus-within:ring-pink-500/30', userMsgBg: 'bg-gradient-to-br from-pink-600 to-rose-600', aiIconBg: 'bg-gradient-to-tr from-pink-500 to-rose-500', buttonBg: 'bg-gradient-to-r from-pink-600 to-rose-600', hoverText: 'hover:text-pink-400', shadowAi: 'shadow-[0_0_10px_rgba(236,72,153,0.3)]', shadowBtn: 'shadow-[0_0_15px_rgba(236,72,153,0.4)]', loader: 'bg-pink-500', gradientText: 'from-pink-400 to-rose-400' },
   ocean: { id: 'ocean', name: '🌊 Deep Ocean', mainBg: 'bg-[#040f1a]', sidebarBg: 'bg-[#020810]', accentText: 'text-cyan-400', accentTextLight: 'text-cyan-300', accentBgLight: 'bg-cyan-500/20', accentBorder: 'border-cyan-500/50', accentRing: 'focus-within:ring-cyan-500/30', userMsgBg: 'bg-gradient-to-br from-cyan-600 to-blue-700', aiIconBg: 'bg-gradient-to-tr from-cyan-400 to-blue-500', buttonBg: 'bg-gradient-to-r from-cyan-600 to-blue-600', hoverText: 'hover:text-cyan-400', shadowAi: 'shadow-[0_0_10px_rgba(6,182,212,0.3)]', shadowBtn: 'shadow-[0_0_15px_rgba(6,182,212,0.4)]', loader: 'bg-cyan-500', gradientText: 'from-cyan-400 to-blue-400' }
 };
@@ -26,7 +26,6 @@ const Home = () => {
   const [activeThemeId, setActiveThemeId] = useState(() => localStorage.getItem('aura-theme') || 'midnight');
   const [activeVoiceURI, setActiveVoiceURI] = useState(() => localStorage.getItem('aura-voice') || '');
   
-  // 🔥 NAYA: Language Mode
   const [appLanguage, setAppLanguage] = useState(() => localStorage.getItem('aura-language') || 'English');
 
   const theme = THEMES[activeThemeId] || THEMES.midnight;
@@ -40,7 +39,8 @@ const Home = () => {
     const fetchUser = async () => {
       try {
         const response = await axios.get("http://localhost:8000/api/user/current-user", { withCredentials: true });
-        setUser(response.data.user); 
+        // 🔥 MAIN FIX IS HERE: .user hata diya gaya hai 🔥
+        setUser(response.data); 
       } catch (error) {
         setUser(null); 
         navigate('/login');

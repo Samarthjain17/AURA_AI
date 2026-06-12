@@ -12,7 +12,6 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
   const [pendingDelete, setPendingDelete] = useState(null);
   const deleteTimeoutRef = useRef(null); 
   
-  // NAYA: 3-Dot Menu aur Pin Logic
   const [openMenuId, setOpenMenuId] = useState(null);
   const [pinnedChats, setPinnedChats] = useState(() => JSON.parse(localStorage.getItem('aura-pinned')) || []);
 
@@ -90,7 +89,7 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
     const chatId = deleteConfirm.chatId;
     const chatToDelete = chatHistory.find(c => c.chatId === chatId);
     setChatHistory(prev => prev.filter(chat => chat.chatId !== chatId));
-    setPinnedChats(prev => prev.filter(id => id !== chatId)); // Remove from pinned if deleted
+    setPinnedChats(prev => prev.filter(id => id !== chatId));
     if (currentChatId === chatId) handleNewChat();
     setPendingDelete(chatToDelete);
     setDeleteConfirm({ isOpen: false, chatId: null });
@@ -114,7 +113,6 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
     if (pendingDelete) { setChatHistory(prev => [pendingDelete, ...prev]); setPendingDelete(null); }
   };
 
-  // Sorting chats: Pinned first, then by normal order
   const filteredChats = chatHistory
     .filter(chat => chat.title?.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
@@ -161,7 +159,6 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
                        <span className="truncate">{chat.title}</span>
                     </button>
                     
-                    {/* 🔥 3-DOT MENU 🔥 */}
                     <div className="relative shrink-0">
                       <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === chat.chatId ? null : chat.chatId); }} className={`text-gray-400 ${theme.hoverText} p-1 rounded-md hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100`}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" /></svg>
@@ -186,6 +183,20 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
       </div>
 
       <div className="p-5 border-t border-white/5 bg-black/20">
+
+        {/* ✅ SIRF YEH NAYA ADD HUA HAI - User Info */}
+        {user && (
+          <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
+            <div className={`w-9 h-9 rounded-full ${theme.buttonBg} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
+              {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-white text-sm font-semibold truncate">{user.name || 'User'}</p>
+              <p className="text-gray-500 text-xs truncate">{user.email}</p>
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-3">
           <button onClick={() => setShowSettings(true)} className="flex-1 flex items-center justify-center gap-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-2.5 rounded-lg transition-all duration-300 font-medium text-sm">⚙️ Settings</button>
           <button onClick={() => setLogoutConfirm(true)} className="flex-1 flex items-center justify-center gap-2 text-gray-400 hover:text-white bg-white/5 hover:bg-red-500/20 hover:border-red-500/50 border border-transparent p-2.5 rounded-lg transition-all duration-300 group font-medium text-sm"><span className="group-hover:text-red-400 transition-colors">Logout</span></button>
@@ -230,17 +241,14 @@ const Sidebar = ({ user, currentChatId, setCurrentChatId, isTemporary, setIsTemp
               ) : (
                 <div className="flex flex-col gap-3 mb-6 animate-fade-in-up">
                    <p className="text-xs text-gray-400 mb-2">How should AURA write text?</p>
-                   
                    <button onClick={() => setAppLanguage('English')} className={`p-4 rounded-xl border flex items-center justify-between transition-all ${appLanguage === 'English' ? theme.accentBorder + ' ' + theme.accentBgLight : 'border-white/5 bg-white/5 hover:bg-white/10'}`}>
                       <div className="text-left"><p className="text-sm font-bold text-white">Pure English</p><p className="text-xs text-gray-400">AI replies in English only.</p></div>
                       {appLanguage === 'English' && <span className="text-lg">✔️</span>}
                    </button>
-                   
                    <button onClick={() => setAppLanguage('Hinglish')} className={`p-4 rounded-xl border flex items-center justify-between transition-all ${appLanguage === 'Hinglish' ? theme.accentBorder + ' ' + theme.accentBgLight : 'border-white/5 bg-white/5 hover:bg-white/10'}`}>
                       <div className="text-left"><p className="text-sm font-bold text-white">Hinglish</p><p className="text-xs text-gray-400">"Main theek hoon, aap kaise ho?"</p></div>
                       {appLanguage === 'Hinglish' && <span className="text-lg">✔️</span>}
                    </button>
-
                    <button onClick={() => setAppLanguage('Hindi')} className={`p-4 rounded-xl border flex items-center justify-between transition-all ${appLanguage === 'Hindi' ? theme.accentBorder + ' ' + theme.accentBgLight : 'border-white/5 bg-white/5 hover:bg-white/10'}`}>
                       <div className="text-left"><p className="text-sm font-bold text-white">Pure Hindi</p><p className="text-xs text-gray-400">"मैं ठीक हूँ, आप कैसे हैं?"</p></div>
                       {appLanguage === 'Hindi' && <span className="text-lg">✔️</span>}

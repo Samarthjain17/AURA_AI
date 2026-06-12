@@ -1,15 +1,12 @@
 import React from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { HiOutlineSparkles, HiOutlineMicrophone, HiOutlineBolt, HiOutlineCodeBracket } from 'react-icons/hi2';
-import { FaRobot } from 'react-icons/fa6'; // Humara AI Icon logo
-
-//  Naye imports Firebase aur Backend logic ke liye
+import { FaRobot } from 'react-icons/fa6';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '../utils/firebase.js';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// Features ki list (Right side ke card ke liye)
 const features = [
   {
     icon: <HiOutlineMicrophone className="text-blue-400 text-2xl" />,
@@ -34,46 +31,29 @@ const features = [
 ];
 
 const Login = () => {
-  const navigate = useNavigate(); // Page change karne ke liye tool
+  const navigate = useNavigate();
 
-  // 🔥 Ye raha humara asli Login Function
   const handleLogin = async () => {
     try {
-      // 1. Google ka Popup kholo
       const result = await signInWithPopup(auth, provider);
-      
-      // 2. Jo user ne Google se login kiya, uska naam aur email nikalo
       const { displayName, email } = result.user;
-
-      // 3. Backend (Server) ko batao ki ye user aa gaya hai, ise database me daalo
       const response = await axios.post(
-        "http://localhost:8000/api/auth/google", 
-        {
-          name: displayName,
-          email: email
-        },
-        {
-          withCredentials: true // Server ko cookie save karne ki permission
-        }
+        "http://localhost:8000/api/auth/google",
+        { name: displayName, email: email },
+        { withCredentials: true }
       );
-
       console.log("Backend Response:", response.data);
-
-      // 4. Sab sahi raha, toh Home page par bhej do
       navigate('/');
-
     } catch (error) {
-      console.log("Login Error Bhai:", error);
+      console.log("Login Error:", error);
     }
   };
 
   return (
     <div className="min-h-screen relative bg-[#0B0F19] overflow-hidden flex items-center justify-center">
-      {/* Animated Background Glow */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse delay-1000"></div>
 
-      {/* 🌟 Premium Header with Icon Logo */}
       <div className="absolute top-8 left-8 flex items-center gap-3 z-20">
         <div className="p-2 bg-gradient-to-br from-purple-500 to-emerald-500 rounded-xl shadow-[0_0_15px_rgba(168,85,247,0.5)]">
           <FaRobot className="text-white text-2xl" />
@@ -83,10 +63,8 @@ const Login = () => {
         </span>
       </div>
 
-      {/* Main Content Container */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-        {/* --- LEFT SECTION --- */}
         <div className="space-y-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
             <HiOutlineSparkles className="text-blue-400 text-xl" />
@@ -105,8 +83,7 @@ const Login = () => {
           </p>
 
           <div>
-            {/* 🔥 Button pe onClick laga hua hai */}
-            <button 
+            <button
               onClick={handleLogin}
               className="group relative inline-flex items-center gap-4 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-2xl hover:scale-105 transition-all duration-300 backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
             >
@@ -117,11 +94,9 @@ const Login = () => {
           </div>
         </div>
 
-        {/* --- RIGHT SECTION (Glass Card) --- */}
         <div className="hidden lg:block relative">
           <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-[40px] p-8 shadow-2xl relative overflow-hidden">
             <h2 className="text-2xl font-bold text-white mb-8">Platform Features</h2>
-            
             <div className="space-y-6">
               {features.map((feature, index) => (
                 <div key={index} className="flex items-start gap-5 p-4 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
